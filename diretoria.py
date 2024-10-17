@@ -113,14 +113,14 @@ st.title('STK Tracker of Insiders')
 col1, col2 = st.columns(2)
 
 with col1:
-    empresas = st.multiselect(options=sorted(tabela_diretoria['Empresa'].unique()))
+    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
         tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input([min_date, max_date])
+        date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
