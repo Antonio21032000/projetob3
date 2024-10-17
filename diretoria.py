@@ -15,7 +15,7 @@ def clean_volume(value):
         return np.nan
 
 # Leitura do CSV
-tabela_diretoria = pd.read_csv(r'M:\VS Code\teste.csv', encoding='latin1', sep=';')
+tabela_diretoria = pd.read_csv('teste.csv', encoding='latin1', sep=';')
 
 tabela_diretoria.to_excel(r'M:\VS Code\teste1.xlsx')
 
