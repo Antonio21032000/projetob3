@@ -64,10 +64,10 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 # Função para limpar o volume financeiro
-def clean_numeric(value):
+def clean_volume(value):
     if pd.isna(value):
         return np.nan
-    cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').replace(' ', '').strip()
+    cleaned = str(value).replace('R$', '').replace(',', '').replace(' ', '').strip()
     try:
         return float(cleaned)
     except ValueError:
@@ -86,7 +86,7 @@ volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower(
 
 if volume_cols:
     volume_col = volume_cols[0]
-    tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_numeric)
+    tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
     
     # Renomear a coluna de volume
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
@@ -96,10 +96,15 @@ if volume_cols:
     tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
     tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
+    tabela_diretoria = tabela_diretoria.sort_values(by='Volume Financeiro (R$)', ascending=False)
     
-    # Converter 'Quantidade' e 'Preco_Unitario' para float
-    tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(clean_numeric)
-    tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(clean_numeric)
+    tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
+    
+    if 'Quantidade' in tabela_diretoria.columns:
+        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
+    
+    if 'Preco_Unitario' in tabela_diretoria.columns:
+        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
 st.title('Tracker of Insiders')
@@ -126,11 +131,6 @@ if empresas:
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
-
-# Formatar as colunas numéricas para exibição
-filtered_df['Volume Financeiro (R$)'] = filtered_df['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
-filtered_df['Quantidade'] = filtered_df['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
-filtered_df['Preco_Unitario'] = filtered_df['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
