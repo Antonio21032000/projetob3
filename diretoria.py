@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
 
 # Configuração da página Streamlit
@@ -11,7 +13,7 @@ STK_COLORS = {
     'secondary': '#C98C2E',  # Dourado
     'accent': '#0E7C7B',  # Cor adicional (turquesa)
     'background': '#FFFFFF',  # Branco para o fundo
-    'text': '#FFFFFF',  # Branco para o texto
+    'text': '#333333',  # Cinza escuro para texto
 }
 
 # Aplicar estilos CSS personalizados
@@ -26,6 +28,7 @@ st.markdown(f"""
     }}
     .stApp {{
         background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['secondary']});
+        color: {STK_COLORS['text']};
     }}
     .stButton>button {{
         color: white;
@@ -33,26 +36,26 @@ st.markdown(f"""
         border-radius: 5px;
     }}
     .stSelectbox, .stMultiSelect {{
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.8);
         color: {STK_COLORS['text']};
     }}
-    h1, h2, h3, p, label {{
-        color: {STK_COLORS['text']};
+    h1 {{
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.8);
     }}
     .stDataFrame {{
-        color: {STK_COLORS['text']};
+        background-color: rgba(255, 255, 255, 0.1);
     }}
     .stDataFrame table {{
-        color: {STK_COLORS['text']} !important;
+        color: white !important;
     }}
     .stDataFrame th {{
         background-color: {STK_COLORS['primary']} !important;
-        color: {STK_COLORS['text']} !important;
-        font-weight: bold !important;
+        color: white !important;
     }}
     .stDataFrame td {{
         background-color: rgba(255, 255, 255, 0.1) !important;
@@ -64,7 +67,7 @@ st.markdown(f"""
 def clean_volume(value):
     if pd.isna(value):
         return np.nan
-    cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').strip()
+    cleaned = str(value).replace('R$', '').replace(',', '').replace(' ', '').strip()
     try:
         return float(cleaned)
     except ValueError:
@@ -79,37 +82,38 @@ def load_data():
 tabela_diretoria = load_data()
 
 # Processamento dos dados
-tabela_diretoria['Empresa'] = tabela_diretoria['Empresa'].astype(str)
+volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
 
-# Renomear a coluna de volume
-volume_col = 'Volume,,,,'  # Nome original da coluna
-if volume_col in tabela_diretoria.columns:
+if volume_cols:
+    volume_col = volume_cols[0]
     tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
+    
+    # Renomear a coluna de volume
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
     
+    # Remover colunas específicas
+    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
+    tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
+    
+    tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
     tabela_diretoria = tabela_diretoria.sort_values(by='Volume Financeiro (R$)', ascending=False)
     
     tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
-
-# Remover colunas específicas
-colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
-tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
-
-if 'Quantidade' in tabela_diretoria.columns:
-    tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
-
-if 'Preco_Unitario' in tabela_diretoria.columns:
-    tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
+    
+    if 'Quantidade' in tabela_diretoria.columns:
+        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
+    
+    if 'Preco_Unitario' in tabela_diretoria.columns:
+        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
 st.title('Dashboard STK')
 
 # Filtros
-col1, col2, col3, col4 = st.columns(4)
+col1, col2 = st.columns(2)
 
 with col1:
-    empresas_unicas = sorted(tabela_diretoria['Empresa'].dropna().unique())
-    empresas = st.multiselect('Empresas', options=empresas_unicas)
+    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -117,14 +121,6 @@ with col2:
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
         date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
-
-with col3:
-    tipos_movimentacao = sorted(tabela_diretoria['Tipo_Movimentacao'].dropna().unique())
-    tipos_movimentacao_selecionados = st.multiselect('Tipo de Movimentação', options=tipos_movimentacao)
-
-with col4:
-    tipos_cargo = sorted(tabela_diretoria['Tipo_Cargo'].dropna().unique())
-    tipos_cargo_selecionados = st.multiselect('Tipo de Cargo', options=tipos_cargo)
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
@@ -135,12 +131,6 @@ if empresas:
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
-
-if tipos_movimentacao_selecionados:
-    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipos_movimentacao_selecionados)]
-
-if tipos_cargo_selecionados:
-    filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipos_cargo_selecionados)]
 
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
