@@ -11,7 +11,7 @@ st.set_page_config(layout="wide", page_title="Dashboard STK")
 STK_COLORS = {
     'primary': '#102E46',  # Azul escuro
     'secondary': '#C98C2E',  # Dourado
-    'background': '#E6E6E6',  # Cinza claro para o fundo
+    'background': '#FFFFFF',  # Branco para o fundo
     'text': '#333333',  # Cinza escuro para texto
 }
 
@@ -40,6 +40,9 @@ st.markdown(f"""
     h1 {{
         color: {STK_COLORS['primary']};
     }}
+    .stDateInput>div>div>input {{
+        color: {STK_COLORS['text']};
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -56,7 +59,7 @@ def clean_volume(value):
 # Leitura do CSV
 @st.cache_data
 def load_data():
-    df = pd.read_csv('teste.csv', encoding='latin1', sep=';')
+    df = pd.read_csv(r'teste.csv', encoding='latin1', sep=';')
     return df
 
 tabela_diretoria = load_data()
@@ -111,7 +114,7 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
 
-# Gerar arquivo Excel (mantido do código original)
+# Gerar arquivo Excel (mantido do código original, mas sem a mensagem de sucesso)
 excel_path = r'M:\VS Code\tabela_diretoria.xlsx'
 
 with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
@@ -131,8 +134,6 @@ with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
                 pass
         adjusted_width = (max_length + 2)
         worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
-
-st.success(f"Arquivo Excel gerado com sucesso: {excel_path}")
 
 
 
