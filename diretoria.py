@@ -5,7 +5,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
 
 # Configuração da página Streamlit
-st.set_page_config(layout="wide", page_title="STK Tracker of Insiders")
+st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
 # Cores da STK
 STK_COLORS = {
@@ -107,7 +107,7 @@ if volume_cols:
         tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
-st.title('STK Tracker of Insiders')
+st.title('Tracker of Insiders')
 
 # Filtros
 col1, col2 = st.columns(2)
