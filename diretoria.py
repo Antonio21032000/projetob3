@@ -2,16 +2,63 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-# ... [Código de configuração e estilo anterior permanece o mesmo] ...
+# Configuração da página Streamlit
+st.set_page_config(layout="wide", page_title="Dashboard STK")
 
-# Adicione este estilo CSS para a primeira linha da tabela
-st.markdown("""
+# Cores da STK
+STK_COLORS = {
+    'primary': '#102E46',  # Azul escuro
+    'secondary': '#C98C2E',  # Dourado
+    'accent': '#0E7C7B',  # Cor adicional (turquesa)
+    'background': '#FFFFFF',  # Branco para o fundo
+    'text': '#FFFFFF',  # Branco para o texto
+}
+
+# Aplicar estilos CSS personalizados
+st.markdown(f"""
     <style>
-    .stDataFrame thead tr th {
+    .reportview-container .main .block-container{{
+        max-width: 1200px;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        padding-left: 5rem;
+        padding-right: 5rem;
+    }}
+    .stApp {{
+        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['secondary']});
+    }}
+    .stButton>button {{
+        color: white;
+        background-color: {STK_COLORS['accent']};
+        border-radius: 5px;
+    }}
+    .stSelectbox, .stMultiSelect {{
+        background-color: rgba(255, 255, 255, 0.1);
+        color: {STK_COLORS['text']};
+    }}
+    h1, h2, h3, p, label {{
+        color: {STK_COLORS['text']};
+    }}
+    .stDateInput>div>div>input {{
+        color: {STK_COLORS['text']};
+        background-color: rgba(255, 255, 255, 0.1);
+    }}
+    .stDataFrame {{
+        color: {STK_COLORS['text']};
+    }}
+    .stDataFrame table {{
+        color: {STK_COLORS['text']} !important;
+    }}
+    .stDataFrame th {{
+        background-color: {STK_COLORS['primary']} !important;
+        color: {STK_COLORS['text']} !important;
         font-weight: bold !important;
-    }
+    }}
+    .stDataFrame td {{
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }}
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Função para limpar o volume financeiro
 def clean_volume(value):
@@ -32,6 +79,8 @@ def load_data():
 tabela_diretoria = load_data()
 
 # Processamento dos dados
+tabela_diretoria['Empresa'] = tabela_diretoria['Empresa'].astype(str)
+
 volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
 
 if volume_cols:
@@ -62,8 +111,8 @@ st.title('Dashboard STK')
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    # Corrigindo o filtro de empresas para incluir todas as empresas únicas
-    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
+    empresas_unicas = tabela_diretoria['Empresa'].dropna().unique()
+    empresas = st.multiselect('Empresas', options=sorted(empresas_unicas))
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -97,4 +146,23 @@ if tipos_cargo:
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
 
-# ... [O restante do código permanece o mesmo] ...
+# Gerar arquivo Excel
+excel_path = 'tabela_diretoria.xlsx'
+
+with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+    tabela_diretoria.to_excel(writer, index=False, sheet_name='Dados')
+    
+    workbook = writer.book
+    worksheet = workbook['Dados']
+    
+    for column in worksheet.columns:
+        max_length = 0
+        column = [cell for cell in column]
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
