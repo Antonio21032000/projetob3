@@ -5,7 +5,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
 
 # Configuração da página Streamlit
-st.set_page_config(layout="wide", page_title="Dashboard STK")
+st.set_page_config(layout="wide", page_title="STK Tracker of Insiders")
 
 # Cores da STK
 STK_COLORS = {
