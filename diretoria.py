@@ -81,6 +81,9 @@ def load_data():
 
 tabela_diretoria = load_data()
 
+# Display column names for debugging
+st.write("Columns in the DataFrame:", tabela_diretoria.columns.tolist())
+
 # Processamento dos dados
 volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
 
@@ -114,7 +117,12 @@ col1, col2 = st.columns(2)
 
 with col1:
     empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
-    tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()))
+    
+    if 'Tipo_Movimentacao' in tabela_diretoria.columns:
+        tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()))
+    else:
+        st.warning("A coluna 'Tipo_Movimentacao' não está presente nos dados.")
+        tipo_movimentacao = []
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -122,8 +130,15 @@ with col2:
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
         date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
+    else:
+        st.warning("A coluna 'Data_Referencia' não está presente nos dados.")
+        date_range = []
     
-    tipo_cargo = st.multiselect('Tipo de Cargo', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()))
+    if 'Tipo_Cargo' in tabela_diretoria.columns:
+        tipo_cargo = st.multiselect('Tipo de Cargo', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()))
+    else:
+        st.warning("A coluna 'Tipo_Cargo' não está presente nos dados.")
+        tipo_cargo = []
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
@@ -131,13 +146,13 @@ filtered_df = tabela_diretoria.copy()
 if empresas:
     filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
 
-if tipo_movimentacao:
+if tipo_movimentacao and 'Tipo_Movimentacao' in filtered_df.columns:
     filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
 
-if tipo_cargo:
+if tipo_cargo and 'Tipo_Cargo' in filtered_df.columns:
     filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipo_cargo)]
 
-if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
+if 'Data_Referencia' in filtered_df.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
 
