@@ -13,7 +13,7 @@ STK_COLORS = {
     'secondary': '#C98C2E',  # Dourado
     'accent': '#0E7C7B',  # Cor adicional (turquesa)
     'background': '#FFFFFF',  # Branco para o fundo
-    'text': '#333333',  # Cinza escuro para texto
+    'text': '#FFFFFF',  # Branco para o texto
 }
 
 # Aplicar estilos CSS personalizados
@@ -28,7 +28,6 @@ st.markdown(f"""
     }}
     .stApp {{
         background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['secondary']});
-        color: {STK_COLORS['text']};
     }}
     .stButton>button {{
         color: white;
@@ -36,26 +35,25 @@ st.markdown(f"""
         border-radius: 5px;
     }}
     .stSelectbox, .stMultiSelect {{
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.1);
         color: {STK_COLORS['text']};
     }}
-    h1 {{
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    h1, h2, h3, p, label {{
+        color: {STK_COLORS['text']};
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
-        background-color: rgba(255, 255, 255, 0.8);
-    }}
-    .stDataFrame {{
         background-color: rgba(255, 255, 255, 0.1);
     }}
+    .stDataFrame {{
+        color: {STK_COLORS['text']};
+    }}
     .stDataFrame table {{
-        color: white !important;
+        color: {STK_COLORS['text']} !important;
     }}
     .stDataFrame th {{
         background-color: {STK_COLORS['primary']} !important;
-        color: white !important;
+        color: {STK_COLORS['text']} !important;
     }}
     .stDataFrame td {{
         background-color: rgba(255, 255, 255, 0.1) !important;
@@ -67,7 +65,7 @@ st.markdown(f"""
 def clean_volume(value):
     if pd.isna(value):
         return np.nan
-    cleaned = str(value).replace('R$', '').replace(',', '').replace(' ', '').strip()
+    cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').strip()
     try:
         return float(cleaned)
     except ValueError:
@@ -101,60 +99,6 @@ if volume_cols:
     tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
     
     if 'Quantidade' in tabela_diretoria.columns:
-        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
-    
-    if 'Preco_Unitario' in tabela_diretoria.columns:
-        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
-
-# Interface Streamlit
-st.title('Dashboard STK')
-
-# Filtros
-col1, col2 = st.columns(2)
-
-with col1:
-    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
-
-with col2:
-    if 'Data_Referencia' in tabela_diretoria.columns:
-        tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
-        min_date = tabela_diretoria['Data_Referencia'].min().date()
-        max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
-
-# Aplicar filtros
-filtered_df = tabela_diretoria.copy()
-
-if empresas:
-    filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
-
-if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
-    filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
-                              (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
-
-# Exibir a tabela filtrada
-st.dataframe(filtered_df, use_container_width=True, height=600)
-
-# Gerar arquivo Excel
-excel_path = 'tabela_diretoria.xlsx'
-
-with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
-    tabela_diretoria.to_excel(writer, index=False, sheet_name='Dados')
-    
-    workbook = writer.book
-    worksheet = workbook['Dados']
-    
-    for column in worksheet.columns:
-        max_length = 0
-        column = [cell for cell in column]
-        for cell in column:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
-
+        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x:
 
 
