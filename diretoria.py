@@ -48,7 +48,17 @@ st.markdown(f"""
         background-color: rgba(255, 255, 255, 0.8);
     }}
     .stDataFrame {{
-        background-color: rgba(255, 255, 255, 0.9);
+        background-color: rgba(255, 255, 255, 0.1);
+    }}
+    .stDataFrame table {{
+        color: white !important;
+    }}
+    .stDataFrame th {{
+        background-color: {STK_COLORS['primary']} !important;
+        color: white !important;
+    }}
+    .stDataFrame td {{
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -78,19 +88,23 @@ if volume_cols:
     volume_col = volume_cols[0]
     tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
     
-    colunas_para_remover = ['Nome_Companhia', 'Intermediario', 'Versao']
+    # Renomear a coluna de volume
+    tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
+    
+    # Remover colunas específicas
+    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
     tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
-    tabela_diretoria = tabela_diretoria.drop_duplicates(subset=[volume_col], keep='first')
-    tabela_diretoria = tabela_diretoria.sort_values(by=volume_col, ascending=False)
+    tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
+    tabela_diretoria = tabela_diretoria.sort_values(by='Volume Financeiro (R$)', ascending=False)
     
-    tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
+    tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
     
     if 'Quantidade' in tabela_diretoria.columns:
         tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
     
     if 'Preco_Unitario' in tabela_diretoria.columns:
-        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'{x:.2f}' if pd.notnull(x) else '')
+        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
 st.title('Dashboard STK')
@@ -121,7 +135,7 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
 
-# Gerar arquivo Excel (mantido do código original, mas sem a mensagem de sucesso)
+# Gerar arquivo Excel
 excel_path = 'tabela_diretoria.xlsx'
 
 with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
