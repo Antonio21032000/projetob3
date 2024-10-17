@@ -81,28 +81,25 @@ tabela_diretoria = load_data()
 # Processamento dos dados
 tabela_diretoria['Empresa'] = tabela_diretoria['Empresa'].astype(str)
 
-volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
-
-if volume_cols:
-    volume_col = volume_cols[0]
+# Renomear a coluna de volume
+volume_col = 'Volume,,,,'  # Nome original da coluna
+if volume_col in tabela_diretoria.columns:
     tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
-    
-    # Renomear a coluna de volume
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
-    
-    # Remover colunas específicas
-    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
-    tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
     tabela_diretoria = tabela_diretoria.sort_values(by='Volume Financeiro (R$)', ascending=False)
     
     tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
-    
-    if 'Quantidade' in tabela_diretoria.columns:
-        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
-    
-    if 'Preco_Unitario' in tabela_diretoria.columns:
-        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
+
+# Remover colunas específicas
+colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
+tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
+
+if 'Quantidade' in tabela_diretoria.columns:
+    tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
+
+if 'Preco_Unitario' in tabela_diretoria.columns:
+    tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
 st.title('Dashboard STK')
