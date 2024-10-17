@@ -92,7 +92,7 @@ if volume_cols:
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
     
     # Remover colunas específicas
-    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
+    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Nome_Companhia', 'Intermediario', 'Versao']
     tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
     tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
@@ -114,6 +114,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
+    tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()))
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -121,12 +122,20 @@ with col2:
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
         date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
+    
+    tipo_cargo = st.multiselect('Tipo de Cargo', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()))
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
 
 if empresas:
     filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
+
+if tipo_movimentacao:
+    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
+
+if tipo_cargo:
+    filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipo_cargo)]
 
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
