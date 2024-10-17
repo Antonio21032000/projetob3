@@ -111,8 +111,8 @@ st.title('Dashboard STK')
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    empresas_unicas = tabela_diretoria['Empresa'].dropna().unique()
-    empresas = st.multiselect('Empresas', options=sorted(empresas_unicas))
+    empresas_unicas = sorted(tabela_diretoria['Empresa'].dropna().unique())
+    empresas = st.multiselect('Empresas', options=empresas_unicas)
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -122,10 +122,12 @@ with col2:
         date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
 
 with col3:
-    tipos_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()))
+    tipos_movimentacao = sorted(tabela_diretoria['Tipo_Movimentacao'].dropna().unique())
+    tipos_movimentacao_selecionados = st.multiselect('Tipo de Movimentação', options=tipos_movimentacao)
 
 with col4:
-    tipos_cargo = st.multiselect('Tipo de Cargo', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()))
+    tipos_cargo = sorted(tabela_diretoria['Tipo_Cargo'].dropna().unique())
+    tipos_cargo_selecionados = st.multiselect('Tipo de Cargo', options=tipos_cargo)
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
@@ -137,11 +139,11 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
 
-if tipos_movimentacao:
-    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipos_movimentacao)]
+if tipos_movimentacao_selecionados:
+    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipos_movimentacao_selecionados)]
 
-if tipos_cargo:
-    filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipos_cargo)]
+if tipos_cargo_selecionados:
+    filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipos_cargo_selecionados)]
 
 # Exibir a tabela filtrada
 st.dataframe(filtered_df, use_container_width=True, height=600)
