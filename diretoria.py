@@ -107,7 +107,7 @@ if volume_cols:
         tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Interface Streamlit
-st.title('Dashboard STK')
+st.title('STK Tracker of Insiders')
 
 # Filtros
 col1, col2 = st.columns(2)
