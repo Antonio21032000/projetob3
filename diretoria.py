@@ -11,6 +11,7 @@ st.set_page_config(layout="wide", page_title="Dashboard STK")
 STK_COLORS = {
     'primary': '#102E46',  # Azul escuro
     'secondary': '#C98C2E',  # Dourado
+    'accent': '#0E7C7B',  # Cor adicional (turquesa)
     'background': '#FFFFFF',  # Branco para o fundo
     'text': '#333333',  # Cinza escuro para texto
 }
@@ -26,22 +27,28 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background-color: {STK_COLORS['background']};
+        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['secondary']});
         color: {STK_COLORS['text']};
     }}
     .stButton>button {{
         color: white;
-        background-color: {STK_COLORS['primary']};
+        background-color: {STK_COLORS['accent']};
         border-radius: 5px;
     }}
     .stSelectbox, .stMultiSelect {{
+        background-color: rgba(255, 255, 255, 0.8);
         color: {STK_COLORS['text']};
     }}
     h1 {{
-        color: {STK_COLORS['primary']};
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
+        background-color: rgba(255, 255, 255, 0.8);
+    }}
+    .stDataFrame {{
+        background-color: rgba(255, 255, 255, 0.9);
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -59,7 +66,7 @@ def clean_volume(value):
 # Leitura do CSV
 @st.cache_data
 def load_data():
-    df = pd.read_csv(r'teste.csv', encoding='latin1', sep=';')
+    df = pd.read_csv('teste.csv', encoding='latin1', sep=';')
     return df
 
 tabela_diretoria = load_data()
@@ -115,7 +122,7 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
 st.dataframe(filtered_df, use_container_width=True, height=600)
 
 # Gerar arquivo Excel (mantido do código original, mas sem a mensagem de sucesso)
-excel_path = r'M:\VS Code\tabela_diretoria.xlsx'
+excel_path = 'tabela_diretoria.xlsx'
 
 with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
     tabela_diretoria.to_excel(writer, index=False, sheet_name='Dados')
