@@ -179,4 +179,3 @@ st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, heigh
 # Botão para download do Excel
 st.markdown(get_table_download_link(filtered_df), unsafe_allow_html=True)
 
-st.sidebar ()
