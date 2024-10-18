@@ -7,13 +7,13 @@ import streamlit as st
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores da STK
+# Cores da STK (modificadas para incluir o roxo galático)
 STK_COLORS = {
-    'primary': '#102E46',  # Azul escuro
+    'primary': '#4B0082',  # Roxo galático
     'secondary': '#C98C2E',  # Dourado
-    'accent': '#0E7C7B',  # Cor adicional (turquesa)
-    'background': '#FFFFFF',  # Branco para o fundo
-    'text': '#333333',  # Cinza escuro para texto
+    'accent': '#8A2BE2',  # Cor adicional (roxo mais claro)
+    'background': '#2E0854',  # Roxo escuro para o fundo
+    'text': '#FFFFFF',  # Branco para texto
 }
 
 # Aplicar estilos CSS personalizados
@@ -27,7 +27,7 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['secondary']});
+        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['background']});
         color: {STK_COLORS['text']};
     }}
     .stButton>button {{
@@ -36,7 +36,7 @@ st.markdown(f"""
         border-radius: 5px;
     }}
     .stSelectbox, .stMultiSelect {{
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.1);
         color: {STK_COLORS['text']};
     }}
     h1 {{
@@ -45,10 +45,10 @@ st.markdown(f"""
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.1);
     }}
     .stDataFrame {{
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.05);
     }}
     .stDataFrame table {{
         color: white !important;
@@ -58,7 +58,7 @@ st.markdown(f"""
         color: white !important;
     }}
     .stDataFrame td {{
-        background-color: rgba(255, 255, 255, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
     }}
     </style>
     """, unsafe_allow_html=True)
