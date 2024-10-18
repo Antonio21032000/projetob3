@@ -9,14 +9,9 @@ from io import BytesIO
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores da STK
-STK_COLORS = {
-    'primary': '#102F46',  # Azul escuro
-    'secondary': '#C9B22E',  # Dourado
-    'accent': '#0990B2',  # Azul claro
-    'background': '#F5F7FA',  # Cinza muito claro para o fundo
-    'text': '#081824',  # Azul muito escuro para texto
-}
+# Cores
+MAIN_COLOR = '#0990B2'  # Azul claro
+TITLE_COLOR = '#102F46'  # Azul escuro para o título
 
 # Aplicar estilos CSS personalizados
 st.markdown(f"""
@@ -29,12 +24,11 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['accent']});
-        color: {STK_COLORS['text']};
+        background-color: {MAIN_COLOR};
     }}
     .stButton>button {{
-        color: white;
-        background-color: {STK_COLORS['accent']};
+        color: {MAIN_COLOR};
+        background-color: white;
         border-radius: 5px;
         font-weight: bold;
         border: none;
@@ -42,13 +36,12 @@ st.markdown(f"""
         transition: background-color 0.3s;
     }}
     .stButton>button:hover {{
-        background-color: {STK_COLORS['primary']};
+        background-color: #f0f0f0;
     }}
     .stSelectbox, .stMultiSelect {{
         background-color: white;
-        border: 1px solid {STK_COLORS['accent']};
         border-radius: 5px;
-        color: {STK_COLORS['text']};
+        color: {MAIN_COLOR};
     }}
     h1 {{
         color: white;
@@ -57,13 +50,12 @@ st.markdown(f"""
         text-align: center;
         margin-bottom: 2rem;
         padding: 1rem;
-        background: linear-gradient(90deg, {STK_COLORS['primary']}, {STK_COLORS['accent']});
+        background-color: {TITLE_COLOR};
         border-radius: 10px;
     }}
     .stDateInput>div>div>input {{
-        color: {STK_COLORS['text']};
+        color: {MAIN_COLOR};
         background-color: white;
-        border: 1px solid {STK_COLORS['accent']};
         border-radius: 5px;
     }}
     .stDataFrame {{
@@ -73,10 +65,10 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }}
     .stDataFrame table {{
-        color: {STK_COLORS['text']} !important;
+        color: {MAIN_COLOR} !important;
     }}
     .stDataFrame th {{
-        background-color: {STK_COLORS['primary']} !important;
+        background-color: {MAIN_COLOR} !important;
         color: white !important;
         padding: 0.5rem !important;
     }}
@@ -85,7 +77,7 @@ st.markdown(f"""
         padding: 0.5rem !important;
     }}
     .stDataFrame tr:nth-of-type(even) {{
-        background-color: {STK_COLORS['background']} !important;
+        background-color: #f8f8f8 !important;
     }}
     </style>
     """, unsafe_allow_html=True)
