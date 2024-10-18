@@ -12,7 +12,7 @@ STK_COLORS = {
     'primary': '#102F46',  # Azul escuro
     'secondary': '#C9B22E',  # Dourado
     'accent': '#0990B2',  # Azul claro
-    'background': '#FFFFFF',  # Branco para o fundo
+    'background': '#F5F7FA',  # Cinza muito claro para o fundo
     'text': '#081824',  # Azul muito escuro para texto
 }
 
@@ -34,21 +34,42 @@ st.markdown(f"""
         color: white;
         background-color: {STK_COLORS['accent']};
         border-radius: 5px;
+        font-weight: bold;
+        border: none;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.3s;
+    }}
+    .stButton>button:hover {{
+        background-color: {STK_COLORS['primary']};
     }}
     .stSelectbox, .stMultiSelect {{
-        background-color: rgba(16, 47, 70, 0.1);
+        background-color: white;
+        border: 1px solid {STK_COLORS['accent']};
+        border-radius: 5px;
         color: {STK_COLORS['text']};
     }}
     h1 {{
         color: {STK_COLORS['primary']};
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: linear-gradient(90deg, {STK_COLORS['primary']}, {STK_COLORS['accent']});
+        color: white;
+        border-radius: 10px;
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
-        background-color: rgba(16, 47, 70, 0.1);
+        background-color: white;
+        border: 1px solid {STK_COLORS['accent']};
+        border-radius: 5px;
     }}
     .stDataFrame {{
-        background-color: rgba(16, 47, 70, 0.05);
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }}
     .stDataFrame table {{
         color: {STK_COLORS['text']} !important;
@@ -56,12 +77,24 @@ st.markdown(f"""
     .stDataFrame th {{
         background-color: {STK_COLORS['primary']} !important;
         color: white !important;
+        padding: 0.5rem !important;
     }}
     .stDataFrame td {{
-        background-color: rgba(16, 47, 70, 0.02) !important;
+        background-color: white !important;
+        padding: 0.5rem !important;
+    }}
+    .stDataFrame tr:nth-of-type(even) {{
+        background-color: {STK_COLORS['background']} !important;
     }}
     </style>
     """, unsafe_allow_html=True)
+
+# Adicionar um cabeçalho estilizado
+st.markdown(f"""
+    <div style="background-color: {STK_COLORS['primary']}; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
+        <h1 style="color: white; margin: 0; text-align: center; font-size: 2.5rem;">Tracker of Insiders</h1>
+    </div>
+""", unsafe_allow_html=True)
 
 # Função para limpar o volume financeiro
 def clean_volume(value):
@@ -106,21 +139,18 @@ if volume_cols:
     if 'Preco_Unitario' in tabela_diretoria.columns:
         tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
-# Interface Streamlit
-st.title('Tracker of Insiders')
-
 # Filtros
 col1, col2 = st.columns(2)
 
 with col1:
-    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()))
+    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
 
 with col2:
     if 'Data_Referencia' in tabela_diretoria.columns:
         tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input('Intervalo de Datas', [min_date, max_date])
+        date_range = st.date_input('Intervalo de Datas', [min_date, max_date], key="date_range")
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
