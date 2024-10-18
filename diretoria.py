@@ -5,7 +5,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
 import base64
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
@@ -41,7 +41,7 @@ st.markdown(f"""
     .stButton>button:hover {{
         background-color: #f0f0f0;
     }}
-    .stSelectbox, .stMultiSelect {{
+    .stSelectbox, .stMultiSelect, .stSlider {{
         background-color: white;
         border-radius: 5px;
         color: {TEXT_COLOR};
@@ -58,11 +58,6 @@ st.markdown(f"""
         font-weight: bold;
         text-align: center;
         margin: 0;
-    }}
-    .stTextInput>div>div>input {{
-        background-color: white;
-        color: {TEXT_COLOR};
-        border-radius: 5px;
     }}
     .stDataFrame {{
         background-color: white;
@@ -156,19 +151,13 @@ with col2:
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
         
-        st.markdown("Intervalo de Datas")
-        col2_1, col2_2 = st.columns(2)
-        with col2_1:
-            start_date = st.text_input("Data Inicial", min_date.strftime('%Y/%m/%d'), key="start_date")
-        with col2_2:
-            end_date = st.text_input("Data Final", max_date.strftime('%Y/%m/%d'), key="end_date")
-        
-        try:
-            start_date = datetime.strptime(start_date, '%Y/%m/%d').date()
-            end_date = datetime.strptime(end_date, '%Y/%m/%d').date()
-        except ValueError:
-            st.error("Por favor, insira as datas no formato AAAA/MM/DD")
-            start_date, end_date = min_date, max_date
+        date_range = st.select_slider(
+            "Intervalo de Datas",
+            options=pd.date_range(min_date, max_date, freq='D'),
+            value=(min_date, max_date),
+            format_func=lambda x: x.strftime('%Y/%m/%d')
+        )
+        start_date, end_date = date_range
 
 with col3:
     if 'Tipo_Movimentacao' in tabela_diretoria.columns:
