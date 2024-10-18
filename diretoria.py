@@ -6,16 +6,16 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-# Configuração da página Streamlit
+# Streamlit page configuration
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores
-BG_COLOR = '#DAA657'  # Cor dourada para o plano de fundo
-TITLE_BG_COLOR = '#102F46'  # Azul escuro para o fundo do título
-TITLE_TEXT_COLOR = 'white'  # Texto do título em branco
-TEXT_COLOR = '#333333'  # Cor do texto principal
+# Updated Colors
+BG_COLOR = '#102F46'  # Dark blue for the background
+TITLE_BG_COLOR = '#DAA657'  # Golden color for the title background
+TITLE_TEXT_COLOR = '#102F46'  # Dark blue for the title text
+TEXT_COLOR = '#333333'  # Main text color remains the same
 
-# Aplicar estilos CSS personalizados
+# Apply custom CSS styles
 st.markdown(f"""
     <style>
     .reportview-container .main .block-container{{
@@ -74,7 +74,7 @@ st.markdown(f"""
     }}
     .stDataFrame th {{
         background-color: {TITLE_BG_COLOR} !important;
-        color: white !important;
+        color: {TITLE_TEXT_COLOR} !important;
         padding: 0.5rem !important;
     }}
     .stDataFrame td {{
@@ -87,10 +87,10 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# Título
+# Title
 st.markdown('<div class="title-container"><h1>Tracker of Insiders</h1></div>', unsafe_allow_html=True)
 
-# Função para limpar o volume financeiro
+# Function to clean financial volume
 def clean_volume(value):
     if pd.isna(value):
         return np.nan
@@ -100,7 +100,7 @@ def clean_volume(value):
     except ValueError:
         return np.nan
 
-# Função para gerar link de download do Excel
+# Function to generate Excel download link
 def get_table_download_link(df):
     towrite = BytesIO()
     df.to_excel(towrite, index=False, engine='openpyxl')
@@ -109,7 +109,7 @@ def get_table_download_link(df):
     href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="tabela_diretoria.xlsx">Download Excel file</a>'
     return href
 
-# Leitura do CSV
+# Read CSV
 @st.cache_data
 def load_data():
     df = pd.read_csv('teste.csv', encoding='latin1', sep=';')
@@ -117,17 +117,17 @@ def load_data():
 
 tabela_diretoria = load_data()
 
-# Processamento dos dados
+# Data processing
 volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
 
 if volume_cols:
     volume_col = volume_cols[0]
     tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
     
-    # Renomear a coluna de volume
+    # Rename volume column
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
     
-    # Remover colunas específicas
+    # Remove specific columns
     colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
     tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
@@ -142,7 +142,7 @@ if volume_cols:
     if 'Preco_Unitario' in tabela_diretoria.columns:
         tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
-# Filtros
+# Filters
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -160,7 +160,7 @@ with col3:
     if 'Tipo_Movimentacao' in tabela_diretoria.columns:
         tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()), key="tipo_movimentacao_select")
 
-# Aplicar filtros
+# Apply filters
 filtered_df = tabela_diretoria.copy()
 
 if 'Empresa' in tabela_diretoria.columns and empresas:
@@ -173,9 +173,8 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
 if 'Tipo_Movimentacao' in tabela_diretoria.columns and tipo_movimentacao:
     filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
 
-# Exibir a tabela filtrada
+# Display filtered table
 st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, height=600)
 
-# Botão para download do Excel
+# Excel download button
 st.markdown(get_table_download_link(filtered_df), unsafe_allow_html=True)
-
