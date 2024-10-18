@@ -84,13 +84,6 @@ st.markdown(f"""
     .stDataFrame tr:nth-of-type(even) {{
         background-color: #f8f8f8 !important;
     }}
-    /* Estilo para os rótulos maiores */
-    .big-label {{
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: {TITLE_BG_COLOR};
-        margin-bottom: 0.5rem;
-    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -150,29 +143,35 @@ if volume_cols:
         tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
 
 # Filtros
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown('<p class="big-label">Empresas</p>', unsafe_allow_html=True)
-    empresas = st.multiselect('', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
+    if 'Empresa' in tabela_diretoria.columns:
+        empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
 
 with col2:
-    st.markdown('<p class="big-label">Intervalo de Datas</p>', unsafe_allow_html=True)
     if 'Data_Referencia' in tabela_diretoria.columns:
         tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input('', [min_date, max_date], key="date_range")
+        date_range = st.date_input('Intervalo de Datas', [min_date, max_date], key="date_range")
+
+with col3:
+    if 'Tipo_Movimentacao' in tabela_diretoria.columns:
+        tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()), key="tipo_movimentacao_select")
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
 
-if empresas:
+if 'Empresa' in tabela_diretoria.columns and empresas:
     filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
 
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
+
+if 'Tipo_Movimentacao' in tabela_diretoria.columns and tipo_movimentacao:
+    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
 
 # Exibir a tabela filtrada
 st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, height=600)
