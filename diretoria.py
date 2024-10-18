@@ -10,7 +10,7 @@ from io import BytesIO
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
 # Cores
-BG_COLOR = '#C9B22E'  # Cor dourada exata para o plano de fundo
+BG_COLOR = '#DAA657'  # Cor dourada para o plano de fundo
 TITLE_BG_COLOR = '#102F46'  # Azul escuro para o fundo do título
 TITLE_TEXT_COLOR = 'white'  # Texto do título em branco
 TEXT_COLOR = '#333333'  # Cor do texto principal
