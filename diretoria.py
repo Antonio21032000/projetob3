@@ -5,6 +5,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
 import base64
 from io import BytesIO
+from datetime import datetime
 
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
@@ -58,9 +59,9 @@ st.markdown(f"""
         text-align: center;
         margin: 0;
     }}
-    .stDateInput>div>div>input {{
-        color: {TEXT_COLOR};
+    .stTextInput>div>div>input {{
         background-color: white;
+        color: {TEXT_COLOR};
         border-radius: 5px;
     }}
     .stDataFrame {{
@@ -154,7 +155,20 @@ with col2:
         tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input('Intervalo de Datas', [min_date, max_date], key="date_range")
+        
+        st.markdown("Intervalo de Datas")
+        col2_1, col2_2 = st.columns(2)
+        with col2_1:
+            start_date = st.text_input("Data Inicial", min_date.strftime('%Y/%m/%d'), key="start_date")
+        with col2_2:
+            end_date = st.text_input("Data Final", max_date.strftime('%Y/%m/%d'), key="end_date")
+        
+        try:
+            start_date = datetime.strptime(start_date, '%Y/%m/%d').date()
+            end_date = datetime.strptime(end_date, '%Y/%m/%d').date()
+        except ValueError:
+            st.error("Por favor, insira as datas no formato AAAA/MM/DD")
+            start_date, end_date = min_date, max_date
 
 with col3:
     if 'Tipo_Movimentacao' in tabela_diretoria.columns:
@@ -166,9 +180,9 @@ filtered_df = tabela_diretoria.copy()
 if 'Empresa' in tabela_diretoria.columns and empresas:
     filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
 
-if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
-    filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
-                              (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
+if 'Data_Referencia' in tabela_diretoria.columns:
+    filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= start_date) & 
+                              (filtered_df['Data_Referencia'].dt.date <= end_date)]
 
 if 'Tipo_Movimentacao' in tabela_diretoria.columns and tipo_movimentacao:
     filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
