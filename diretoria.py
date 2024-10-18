@@ -167,7 +167,11 @@ with col2:
         date_range = st.date_input('', [min_date, max_date], key="date_range")
 
     st.markdown('<p class="big-label">Tipo de Cargo</p>', unsafe_allow_html=True)
-    tipo_cargo = st.multiselect('', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()), key="tipo_cargo_select")
+    if 'Tipo_Cargo' in tabela_diretoria.columns:
+        tipo_cargo = st.multiselect('', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()), key="tipo_cargo_select")
+    else:
+        st.write("Dados de Tipo de Cargo não disponíveis")
+        tipo_cargo = []
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
@@ -178,7 +182,7 @@ if empresas:
 if tipo_movimentacao:
     filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
 
-if tipo_cargo:
+if 'Tipo_Cargo' in tabela_diretoria.columns and tipo_cargo:
     filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipo_cargo)]
 
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
