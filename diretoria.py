@@ -84,6 +84,13 @@ st.markdown(f"""
     .stDataFrame tr:nth-of-type(even) {{
         background-color: #f8f8f8 !important;
     }}
+    /* Estilo para os rótulos maiores */
+    .big-label {{
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: {TITLE_BG_COLOR};
+        margin-bottom: 0.5rem;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -146,14 +153,16 @@ if volume_cols:
 col1, col2 = st.columns(2)
 
 with col1:
-    empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
+    st.markdown('<p class="big-label">Empresas</p>', unsafe_allow_html=True)
+    empresas = st.multiselect('', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
 
 with col2:
+    st.markdown('<p class="big-label">Intervalo de Datas</p>', unsafe_allow_html=True)
     if 'Data_Referencia' in tabela_diretoria.columns:
         tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
         min_date = tabela_diretoria['Data_Referencia'].min().date()
         max_date = tabela_diretoria['Data_Referencia'].max().date()
-        date_range = st.date_input('Intervalo de Datas', [min_date, max_date], key="date_range")
+        date_range = st.date_input('', [min_date, max_date], key="date_range")
 
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
