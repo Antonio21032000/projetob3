@@ -84,7 +84,6 @@ st.markdown(f"""
     .stDataFrame tr:nth-of-type(even) {{
         background-color: #f8f8f8 !important;
     }}
-    /* Estilo para os rótulos maiores */
     .big-label {{
         font-size: 1.5rem;
         font-weight: bold;
@@ -135,7 +134,7 @@ if volume_cols:
     tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
     
     # Remover colunas específicas
-    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
+    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Nome_Companhia', 'Intermediario', 'Versao']
     tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
     
     tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
@@ -156,6 +155,9 @@ with col1:
     st.markdown('<p class="big-label">Empresas</p>', unsafe_allow_html=True)
     empresas = st.multiselect('', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
 
+    st.markdown('<p class="big-label">Tipo de Movimentação</p>', unsafe_allow_html=True)
+    tipo_movimentacao = st.multiselect('', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()), key="tipo_movimentacao_select")
+
 with col2:
     st.markdown('<p class="big-label">Intervalo de Datas</p>', unsafe_allow_html=True)
     if 'Data_Referencia' in tabela_diretoria.columns:
@@ -164,11 +166,20 @@ with col2:
         max_date = tabela_diretoria['Data_Referencia'].max().date()
         date_range = st.date_input('', [min_date, max_date], key="date_range")
 
+    st.markdown('<p class="big-label">Tipo de Cargo</p>', unsafe_allow_html=True)
+    tipo_cargo = st.multiselect('', options=sorted(tabela_diretoria['Tipo_Cargo'].unique()), key="tipo_cargo_select")
+
 # Aplicar filtros
 filtered_df = tabela_diretoria.copy()
 
 if empresas:
     filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
+
+if tipo_movimentacao:
+    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
+
+if tipo_cargo:
+    filtered_df = filtered_df[filtered_df['Tipo_Cargo'].isin(tipo_cargo)]
 
 if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
     filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
