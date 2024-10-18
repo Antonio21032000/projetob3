@@ -10,8 +10,10 @@ from io import BytesIO
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
 # Cores
-MAIN_COLOR = '#0990B2'  # Azul claro
-TITLE_COLOR = '#102F46'  # Azul escuro para o título
+BG_COLOR = '#DAA657'  # Dourado para o plano de fundo
+TITLE_BG_COLOR = '#102F46'  # Azul escuro para o fundo do título
+TITLE_TEXT_COLOR = 'white'  # Texto do título em branco
+TEXT_COLOR = '#333333'  # Cor do texto principal
 
 # Aplicar estilos CSS personalizados
 st.markdown(f"""
@@ -24,10 +26,10 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background-color: {MAIN_COLOR};
+        background-color: {BG_COLOR};
     }}
     .stButton>button {{
-        color: {MAIN_COLOR};
+        color: {TITLE_BG_COLOR};
         background-color: white;
         border-radius: 5px;
         font-weight: bold;
@@ -41,20 +43,23 @@ st.markdown(f"""
     .stSelectbox, .stMultiSelect {{
         background-color: white;
         border-radius: 5px;
-        color: {MAIN_COLOR};
+        color: {TEXT_COLOR};
     }}
-    h1 {{
-        color: white;
+    .title-container {{
+        background-color: {TITLE_BG_COLOR};
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }}
+    .title-container h1 {{
+        color: {TITLE_TEXT_COLOR};
         font-size: 2.5rem;
         font-weight: bold;
         text-align: center;
-        margin-bottom: 2rem;
-        padding: 1rem;
-        background-color: {TITLE_COLOR};
-        border-radius: 10px;
+        margin: 0;
     }}
     .stDateInput>div>div>input {{
-        color: {MAIN_COLOR};
+        color: {TEXT_COLOR};
         background-color: white;
         border-radius: 5px;
     }}
@@ -65,10 +70,10 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }}
     .stDataFrame table {{
-        color: {MAIN_COLOR} !important;
+        color: {TEXT_COLOR} !important;
     }}
     .stDataFrame th {{
-        background-color: {MAIN_COLOR} !important;
+        background-color: {TITLE_BG_COLOR} !important;
         color: white !important;
         padding: 0.5rem !important;
     }}
@@ -83,7 +88,7 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 # Título
-st.title('Tracker of Insiders')
+st.markdown('<div class="title-container"><h1>Tracker of Insiders</h1></div>', unsafe_allow_html=True)
 
 # Função para limpar o volume financeiro
 def clean_volume(value):
