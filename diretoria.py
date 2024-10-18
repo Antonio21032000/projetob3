@@ -3,11 +3,13 @@ import numpy as np
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import streamlit as st
+import base64
+from io import BytesIO
 
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores da STK (atualizadas com base na paleta fornecida)
+# Cores da STK
 STK_COLORS = {
     'primary': '#102F46',  # Azul escuro
     'secondary': '#C9B22E',  # Dourado
@@ -27,7 +29,7 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background: {STK_COLORS['background']};
+        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['accent']});
         color: {STK_COLORS['text']};
     }}
     .stButton>button {{
@@ -49,14 +51,13 @@ st.markdown(f"""
         color: {STK_COLORS['text']};
     }}
     h1 {{
-        color: {STK_COLORS['primary']};
+        color: white;
         font-size: 2.5rem;
         font-weight: bold;
         text-align: center;
         margin-bottom: 2rem;
         padding: 1rem;
         background: linear-gradient(90deg, {STK_COLORS['primary']}, {STK_COLORS['accent']});
-        color: white;
         border-radius: 10px;
     }}
     .stDateInput>div>div>input {{
@@ -89,12 +90,8 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# Adicionar um cabeçalho estilizado
-st.markdown(f"""
-    <div style="background-color: {STK_COLORS['primary']}; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
-        <h1 style="color: white; margin: 0; text-align: center; font-size: 2.5rem;">Tracker of Insiders</h1>
-    </div>
-""", unsafe_allow_html=True)
+# Título
+st.title('Tracker of Insiders')
 
 # Função para limpar o volume financeiro
 def clean_volume(value):
@@ -105,6 +102,15 @@ def clean_volume(value):
         return float(cleaned)
     except ValueError:
         return np.nan
+
+# Função para gerar link de download do Excel
+def get_table_download_link(df):
+    towrite = BytesIO()
+    df.to_excel(towrite, index=False, engine='openpyxl')
+    towrite.seek(0)
+    b64 = base64.b64encode(towrite.read()).decode()
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="tabela_diretoria.xlsx">Download Excel file</a>'
+    return href
 
 # Leitura do CSV
 @st.cache_data
@@ -163,25 +169,7 @@ if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
                               (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
 
 # Exibir a tabela filtrada
-st.dataframe(filtered_df, use_container_width=True, height=600)
+st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, height=600)
 
-# Gerar arquivo Excel
-excel_path = 'tabela_diretoria.xlsx'
-
-with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
-    tabela_diretoria.to_excel(writer, index=False, sheet_name='Dados')
-    
-    workbook = writer.book
-    worksheet = workbook['Dados']
-    
-    for column in worksheet.columns:
-        max_length = 0
-        column = [cell for cell in column]
-        for cell in column:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+# Botão para download do Excel
+st.markdown(get_table_download_link(filtered_df), unsafe_allow_html=True)
