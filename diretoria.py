@@ -7,13 +7,13 @@ import streamlit as st
 # Configuração da página Streamlit
 st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores da STK (modificadas para incluir o roxo galático)
+# Cores da STK (atualizadas com base na paleta fornecida)
 STK_COLORS = {
-    'primary': '#4B0082',  # Roxo galático
-    'secondary': '#C98C2E',  # Dourado
-    'accent': '#8A2BE2',  # Cor adicional (roxo mais claro)
-    'background': '#2E0854',  # Roxo escuro para o fundo
-    'text': '#FFFFFF',  # Branco para texto
+    'primary': '#102F46',  # Azul escuro
+    'secondary': '#C9B22E',  # Dourado
+    'accent': '#0990B2',  # Azul claro
+    'background': '#FFFFFF',  # Branco para o fundo
+    'text': '#081824',  # Azul muito escuro para texto
 }
 
 # Aplicar estilos CSS personalizados
@@ -27,7 +27,7 @@ st.markdown(f"""
         padding-right: 5rem;
     }}
     .stApp {{
-        background: linear-gradient(135deg, {STK_COLORS['primary']}, {STK_COLORS['background']});
+        background: {STK_COLORS['background']};
         color: {STK_COLORS['text']};
     }}
     .stButton>button {{
@@ -36,29 +36,29 @@ st.markdown(f"""
         border-radius: 5px;
     }}
     .stSelectbox, .stMultiSelect {{
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(16, 47, 70, 0.1);
         color: {STK_COLORS['text']};
     }}
     h1 {{
-        color: white;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        color: {STK_COLORS['primary']};
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }}
     .stDateInput>div>div>input {{
         color: {STK_COLORS['text']};
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(16, 47, 70, 0.1);
     }}
     .stDataFrame {{
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: rgba(16, 47, 70, 0.05);
     }}
     .stDataFrame table {{
-        color: white !important;
+        color: {STK_COLORS['text']} !important;
     }}
     .stDataFrame th {{
         background-color: {STK_COLORS['primary']} !important;
         color: white !important;
     }}
     .stDataFrame td {{
-        background-color: rgba(255, 255, 255, 0.05) !important;
+        background-color: rgba(16, 47, 70, 0.02) !important;
     }}
     </style>
     """, unsafe_allow_html=True)
