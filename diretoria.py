@@ -12,7 +12,7 @@ st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 # Updated Colors
 BG_COLOR = '#102F46'  # Dark blue for the background
 TITLE_BG_COLOR = '#DAA657'  # Golden color for the title background
-TITLE_TEXT_COLOR = '#102F46'  # Dark blue for the title text
+TITLE_TEXT_COLOR = 'white'  # White color for the title text
 TEXT_COLOR = '#333333'  # Main text color remains the same
 
 # Apply custom CSS styles
