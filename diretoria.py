@@ -7,7 +7,7 @@ import base64
 from io import BytesIO
 
 # Streamlit page configuration
-st.set_page_config(layout="wide", page_title="Tracker of Insiders")
+st.set_page_config(layout="wide", page_title="STK Tracker of Insiders")
 
 # Updated Colors
 BG_COLOR = '#102F46'  # Dark blue for the background
