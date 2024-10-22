@@ -88,7 +88,7 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 # Title
-st.markdown('<div class="title-container"><h1>Tracker of Insiders</h1></div>', unsafe_allow_html=True)
+st.markdown('<div class="title-container"><h1>BR Insider Analysis</h1></div>', unsafe_allow_html=True)
 
 # Function to clean financial volume
 def clean_volume(value):
