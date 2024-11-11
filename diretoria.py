@@ -10,10 +10,10 @@ from io import BytesIO
 st.set_page_config(layout="wide", page_title="Análise de Insiders")
 
 # Cores atualizadas
-BG_COLOR = '#102F46'  # Azul escuro para o fundo
-TITLE_BG_COLOR = '#DAA657'  # Dourado para o fundo do título
-TITLE_TEXT_COLOR = 'white'  # Branco para o texto do título
-TEXT_COLOR = '#333333'  # Cor principal do texto
+BG_COLOR = '#102F46'
+TITLE_BG_COLOR = '#DAA657'
+TITLE_TEXT_COLOR = 'white'
+TEXT_COLOR = '#333333'
 
 # Aplicar estilos CSS personalizados
 st.markdown(f"""
@@ -94,7 +94,9 @@ st.markdown('<div class="title-container"><h1>Análise de Insiders BR</h1></div>
 def clean_volume(value):
     if pd.isna(value):
         return np.nan
-    cleaned = str(value).replace('R$', '').replace(',', '').replace(' ', '').strip()
+    if isinstance(value, (int, float)):
+        return float(value)
+    cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').replace(' ', '').strip()
     try:
         return float(cleaned)
     except ValueError:
@@ -110,9 +112,12 @@ def get_table_download_link(df):
     return href
 
 # Ler CSV
-@st.cache_data(ttl=3600)  # Cache com tempo de vida de 1 hora
+@st.cache_data(ttl=3600)
 def load_data():
     df = pd.read_csv('teste.csv', encoding='latin1', sep=';')
+    # Converter a coluna de data para datetime logo após a leitura
+    if 'Data_Referencia' in df.columns:
+        df['Data_Referencia'] = pd.to_datetime(df['Data_Referencia'], format='%Y-%m-%d', errors='coerce')
     return df
 
 try:
@@ -123,6 +128,7 @@ try:
     
     if volume_cols:
         volume_col = volume_cols[0]
+        # Converter volume para float
         tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
         
         # Renomear coluna de volume
@@ -132,15 +138,18 @@ try:
         colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
         tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
         
-        # Converter Data_Referencia para datetime
-        if 'Data_Referencia' in tabela_diretoria.columns:
-            tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'], format='%Y-%m-%d', errors='coerce')
-        
         # Remover duplicatas e ordenar
         tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
         tabela_diretoria = tabela_diretoria.sort_values(by='Data_Referencia', ascending=False)
         
-        # Formatar valores
+        # Converter valores numéricos antes de formatar
+        if 'Quantidade' in tabela_diretoria.columns:
+            tabela_diretoria['Quantidade'] = pd.to_numeric(tabela_diretoria['Quantidade'], errors='coerce')
+        
+        if 'Preco_Unitario' in tabela_diretoria.columns:
+            tabela_diretoria['Preco_Unitario'] = pd.to_numeric(tabela_diretoria['Preco_Unitario'], errors='coerce')
+        
+        # Formatar valores para exibição
         tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
         
         if 'Quantidade' in tabela_diretoria.columns:
