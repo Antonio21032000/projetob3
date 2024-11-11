@@ -6,16 +6,16 @@ import streamlit as st
 import base64
 from io import BytesIO
 
-# Configuração da página Streamlit
-st.set_page_config(layout="wide", page_title="Análise de Insiders")
+# Streamlit page configuration
+st.set_page_config(layout="wide", page_title="Tracker of Insiders")
 
-# Cores atualizadas
-BG_COLOR = '#102F46'
-TITLE_BG_COLOR = '#DAA657'
-TITLE_TEXT_COLOR = 'white'
-TEXT_COLOR = '#333333'
+# Updated Colors
+BG_COLOR = '#102F46'  # Dark blue for the background
+TITLE_BG_COLOR = '#DAA657'  # Golden color for the title background
+TITLE_TEXT_COLOR = 'white'  # White color for the title text
+TEXT_COLOR = '#333333'  # Main text color remains the same
 
-# Aplicar estilos CSS personalizados
+# Apply custom CSS styles
 st.markdown(f"""
     <style>
     .reportview-container .main .block-container{{
@@ -87,121 +87,94 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# Título
-st.markdown('<div class="title-container"><h1>Análise de Insiders BR</h1></div>', unsafe_allow_html=True)
+# Title
+st.markdown('<div class="title-container"><h1>BR Insider Analysis</h1></div>', unsafe_allow_html=True)
 
-# Função para limpar volume financeiro
+# Function to clean financial volume
 def clean_volume(value):
     if pd.isna(value):
         return np.nan
-    if isinstance(value, (int, float)):
-        return float(value)
-    cleaned = str(value).replace('R$', '').replace('.', '').replace(',', '.').replace(' ', '').strip()
+    cleaned = str(value).replace('R$', '').replace(',', '').replace(' ', '').strip()
     try:
         return float(cleaned)
     except ValueError:
         return np.nan
 
-# Função para gerar link de download do Excel
+# Function to generate Excel download link
 def get_table_download_link(df):
     towrite = BytesIO()
     df.to_excel(towrite, index=False, engine='openpyxl')
     towrite.seek(0)
     b64 = base64.b64encode(towrite.read()).decode()
-    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="tabela_diretoria.xlsx">Baixar arquivo Excel</a>'
+    href = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="tabela_diretoria.xlsx">Download Excel file</a>'
     return href
 
-# Ler CSV
-@st.cache_data(ttl=3600)
+# Read CSV
+@st.cache_data
 def load_data():
     df = pd.read_csv('teste.csv', encoding='latin1', sep=';')
-    # Converter a coluna de data para datetime logo após a leitura
-    if 'Data_Referencia' in df.columns:
-        df['Data_Referencia'] = pd.to_datetime(df['Data_Referencia'], format='%Y-%m-%d', errors='coerce')
     return df
 
-try:
-    tabela_diretoria = load_data()
-    
-    # Processamento dos dados
-    volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
-    
-    if volume_cols:
-        volume_col = volume_cols[0]
-        # Converter volume para float
-        tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
-        
-        # Renomear coluna de volume
-        tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
-        
-        # Remover colunas específicas
-        colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
-        tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
-        
-        # Remover duplicatas e ordenar
-        tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
-        tabela_diretoria = tabela_diretoria.sort_values(by='Data_Referencia', ascending=False)
-        
-        # Converter valores numéricos antes de formatar
-        if 'Quantidade' in tabela_diretoria.columns:
-            tabela_diretoria['Quantidade'] = pd.to_numeric(tabela_diretoria['Quantidade'], errors='coerce')
-        
-        if 'Preco_Unitario' in tabela_diretoria.columns:
-            tabela_diretoria['Preco_Unitario'] = pd.to_numeric(tabela_diretoria['Preco_Unitario'], errors='coerce')
-        
-        # Formatar valores para exibição
-        tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
-        
-        if 'Quantidade' in tabela_diretoria.columns:
-            tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
-        
-        if 'Preco_Unitario' in tabela_diretoria.columns:
-            tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
-    
-    # Filtros
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if 'Empresa' in tabela_diretoria.columns:
-            empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
-    
-    with col2:
-        if 'Data_Referencia' in tabela_diretoria.columns:
-            min_date = tabela_diretoria['Data_Referencia'].min()
-            max_date = tabela_diretoria['Data_Referencia'].max()
-            date_range = st.date_input(
-                'Intervalo de Datas',
-                [min_date.date(), max_date.date()],
-                min_value=min_date.date(),
-                max_value=max_date.date(),
-                key="date_range"
-            )
-    
-    with col3:
-        if 'Tipo_Movimentacao' in tabela_diretoria.columns:
-            tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()), key="tipo_movimentacao_select")
-    
-    # Aplicar filtros
-    filtered_df = tabela_diretoria.copy()
-    
-    if empresas:
-        filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
-    
-    if len(date_range) == 2:
-        filtered_df = filtered_df[
-            (filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
-            (filtered_df['Data_Referencia'].dt.date <= date_range[1])
-        ]
-    
-    if tipo_movimentacao:
-        filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
-    
-    # Exibir tabela filtrada
-    st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, height=600)
-    
-    # Botão de download Excel
-    st.markdown(get_table_download_link(filtered_df), unsafe_allow_html=True)
+tabela_diretoria = load_data()
 
-except Exception as e:
-    st.error(f"Erro ao carregar ou processar os dados: {str(e)}")
-    st.write("Por favor, verifique se o arquivo 'teste.csv' existe e está no formato correto.")
+# Data processing
+volume_cols = [col for col in tabela_diretoria.columns if 'volume' in col.lower()]
+
+if volume_cols:
+    volume_col = volume_cols[0]
+    tabela_diretoria[volume_col] = tabela_diretoria[volume_col].apply(clean_volume)
+    
+    # Rename volume column
+    tabela_diretoria.rename(columns={volume_col: 'Volume Financeiro (R$)'}, inplace=True)
+    
+    # Remove specific columns
+    colunas_para_remover = ['CNPJ_Companhia', 'Tipo_Empresa', 'Descricao_Movimentacao', 'Tipo_Operacao', 'Nome_Companhia', 'Intermediario', 'Versao']
+    tabela_diretoria = tabela_diretoria.drop(columns=[col for col in colunas_para_remover if col in tabela_diretoria.columns])
+    
+    tabela_diretoria = tabela_diretoria.drop_duplicates(subset=['Volume Financeiro (R$)'], keep='first')
+    tabela_diretoria = tabela_diretoria.sort_values(by='Volume Financeiro (R$)', ascending=False)
+    
+    tabela_diretoria['Volume Financeiro (R$)'] = tabela_diretoria['Volume Financeiro (R$)'].apply(lambda x: f'R$ {x:,.2f}' if pd.notnull(x) else '')
+    
+    if 'Quantidade' in tabela_diretoria.columns:
+        tabela_diretoria['Quantidade'] = tabela_diretoria['Quantidade'].apply(lambda x: f'{x:,.0f}' if pd.notnull(x) else '')
+    
+    if 'Preco_Unitario' in tabela_diretoria.columns:
+        tabela_diretoria['Preco_Unitario'] = tabela_diretoria['Preco_Unitario'].apply(lambda x: f'R$ {x:.2f}' if pd.notnull(x) else '')
+
+# Filters
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if 'Empresa' in tabela_diretoria.columns:
+        empresas = st.multiselect('Empresas', options=sorted(tabela_diretoria['Empresa'].unique()), key="empresas_select")
+
+with col2:
+    if 'Data_Referencia' in tabela_diretoria.columns:
+        tabela_diretoria['Data_Referencia'] = pd.to_datetime(tabela_diretoria['Data_Referencia'])
+        min_date = tabela_diretoria['Data_Referencia'].min().date()
+        max_date = tabela_diretoria['Data_Referencia'].max().date()
+        date_range = st.date_input('Intervalo de Datas', [min_date, max_date], key="date_range")
+
+with col3:
+    if 'Tipo_Movimentacao' in tabela_diretoria.columns:
+        tipo_movimentacao = st.multiselect('Tipo de Movimentação', options=sorted(tabela_diretoria['Tipo_Movimentacao'].unique()), key="tipo_movimentacao_select")
+
+# Apply filters
+filtered_df = tabela_diretoria.copy()
+
+if 'Empresa' in tabela_diretoria.columns and empresas:
+    filtered_df = filtered_df[filtered_df['Empresa'].isin(empresas)]
+
+if 'Data_Referencia' in tabela_diretoria.columns and len(date_range) == 2:
+    filtered_df = filtered_df[(filtered_df['Data_Referencia'].dt.date >= date_range[0]) & 
+                              (filtered_df['Data_Referencia'].dt.date <= date_range[1])]
+
+if 'Tipo_Movimentacao' in tabela_diretoria.columns and tipo_movimentacao:
+    filtered_df = filtered_df[filtered_df['Tipo_Movimentacao'].isin(tipo_movimentacao)]
+
+# Display filtered table
+st.dataframe(filtered_df.reset_index(drop=True), use_container_width=True, height=600)
+
+# Excel download button
+st.markdown(get_table_download_link(filtered_df), unsafe_allow_html=True)
